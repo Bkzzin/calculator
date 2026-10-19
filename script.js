@@ -1,69 +1,109 @@
-const tela = document.getElementById("tela");
+const visor = document.getElementById("visor");
 
-let expressao = "";
-let resultadoMostrado = false;
+let valorAtual = "0";
+let valorAnterior = null;
+let operador = null;
+let iniciarNovoNumero = false;
 
-function adicionar(valor) {
-    const operadores = ["+", "-", "*", "/"];
-
-    if (tela.value === "Erro") {
-        expressao = "";
-    }
-
-    if (resultadoMostrado) {
-        if (!operadores.includes(valor)) {
-            expressao = "";
-        }
-        resultadoMostrado = false;
-    }
-
-    if (operadores.includes(valor)) {
-        if (expressao === "" && valor !== "-") {
-            return;
-        }
-
-        const ultimo = expressao.slice(-1);
-
-        if (operadores.includes(ultimo)) {
-            expressao = expressao.slice(0, -1);
-        }
-    }
-
-    if (valor === ".") {
-        const parteAtual = expressao.split(/[+\-*/]/).pop();
-
-        if (parteAtual.includes(".")) {
-            return;
-        }
-
-        if (parteAtual === "") {
-            valor = "0.";
-        }
-    }
-
-    expressao += valor;
-    tela.value = expressao;
+function atualizarVisor() {
+  visor.value = valorAtual;
 }
 
-function limpar() {
-    expressao = "";
-    tela.value = "0";
-    resultadoMostrado = false;
+function digitarNumero(numero) {
+  if (iniciarNovoNumero) {
+    valorAtual = numero === "." ? "0." : numero;
+    iniciarNovoNumero = false;
+  } else if (numero === ".") {
+    if (!valorAtual.includes(".")) {
+      valorAtual += ".";
+    }
+  } else {
+    valorAtual = valorAtual === "0"
+      ? numero
+      : valorAtual + numero;
+  }
+
+  atualizarVisor();
 }
 
-function apagar() {
-    if (tela.value === "Erro" || resultadoMostrado) {
-        limpar();
-        return;
-    }
+function escolherOperador(novoOperador) {
+  if (operador !== null && !iniciarNovoNumero) {
+    calcular();
+  }
 
-    expressao = expressao.slice(0, -1);
-    tela.value = expressao || "0";
+  valorAnterior = Number(valorAtual);
+  operador = novoOperador;
+  iniciarNovoNumero = true;
 }
 
 function calcular() {
-    if (!expressao) return;
+  if (operador === null || valorAnterior === null) return;
 
-    try }
-        // Aceita somente números e operadores matemáticos.
-        
+  const atual = Number(valorAtual);
+  let resultado;
+
+  switch (operador) {
+    case "+":
+      resultado = valorAnterior + atual;
+      break;
+    case "-":
+      resultado = valorAnterior - atual;
+      break;
+    case "*":
+      resultado = valorAnterior * atual;
+      break;
+    case "/":
+      if (atual === 0) {
+        valorAtual = "Erro: divisão por zero";
+        operador = null;
+        valorAnterior = null;
+        iniciarNovoNumero = true;
+        atualizarVisor();
+        return;
+      }
+      resultado = valorAnterior / atual;
+      break;
+  }
+
+  valorAtual = String(Number(resultado.toPrecision(10)));
+  operador = null;
+  valorAnterior = null;
+  iniciarNovoNumero = true;
+  atualizarVisor();
+}
+
+function limpar() {
+  valorAtual = "0";
+  valorAnterior = null;
+  operador = null;
+  iniciarNovoNumero = false;
+  atualizarVisor();
+}
+
+function apagar() {
+  if (iniciarNovoNumero) return;
+
+  valorAtual = valorAtual.length > 1
+    ? valorAtual.slice(0, -1)
+    : "0";
+
+  atualizarVisor();
+}
+
+document.querySelector(".botoes").addEventListener("click", (evento) => {
+  const botao = evento.target.closest("button");
+  if (!botao) return;
+
+  if (botao.dataset.numero !== undefined) {
+    digitarNumero(botao.dataset.numero);
+  } else if (botao.dataset.operador) {
+    escolherOperador(botao.dataset.operador);
+  } else if (botao.dataset.acao === "calcular") {
+    calcular();
+  } else if (botao.dataset.acao === "limpar") {
+    limpar();
+  } else if (botao.dataset.acao === "apagar") {
+    apagar();
+  }
+});
+       
