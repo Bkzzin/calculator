@@ -64,6 +64,6 @@ function apagar() {
 function calcular() {
     if (!expressao) return;
 
-    try {
+    try }
         // Aceita somente números e operadores matemáticos.
         
