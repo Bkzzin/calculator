@@ -1,31 +1,47 @@
-const visor = document.getElementById("visor");
+
+const visor = document.getElementById("tela");
 
 let valorAtual = "0";
 let valorAnterior = null;
 let operador = null;
 let iniciarNovoNumero = false;
 
+// Atualiza o visor da calculadora
 function atualizarVisor() {
   visor.value = valorAtual;
 }
 
-function digitarNumero(numero) {
+// Adiciona números e ponto decimal
+function adicionar(valor) {
+  // Se for um operador, guarda o valor atual
+  if (["+", "-", "*", "/"].includes(valor)) {
+    escolherOperador(valor);
+    return;
+  }
+
+  // Se acabou de calcular ou escolheu um operador
   if (iniciarNovoNumero) {
-    valorAtual = numero === "." ? "0." : numero;
+    valorAtual = valor === "." ? "0." : valor;
     iniciarNovoNumero = false;
-  } else if (numero === ".") {
+    atualizarVisor();
+    return;
+  }
+
+  // Evita dois pontos decimais
+  if (valor === ".") {
     if (!valorAtual.includes(".")) {
       valorAtual += ".";
     }
   } else {
     valorAtual = valorAtual === "0"
-      ? numero
-      : valorAtual + numero;
+      ? valor
+      : valorAtual + valor;
   }
 
   atualizarVisor();
 }
 
+// Escolhe a operação matemática
 function escolherOperador(novoOperador) {
   if (operador !== null && !iniciarNovoNumero) {
     calcular();
@@ -36,8 +52,11 @@ function escolherOperador(novoOperador) {
   iniciarNovoNumero = true;
 }
 
+// Realiza o cálculo
 function calcular() {
-  if (operador === null || valorAnterior === null) return;
+  if (operador === null || valorAnterior === null) {
+    return;
+  }
 
   const atual = Number(valorAtual);
   let resultado;
@@ -46,12 +65,15 @@ function calcular() {
     case "+":
       resultado = valorAnterior + atual;
       break;
+
     case "-":
       resultado = valorAnterior - atual;
       break;
+
     case "*":
       resultado = valorAnterior * atual;
       break;
+
     case "/":
       if (atual === 0) {
         valorAtual = "Erro: divisão por zero";
@@ -61,6 +83,7 @@ function calcular() {
         atualizarVisor();
         return;
       }
+
       resultado = valorAnterior / atual;
       break;
   }
@@ -69,41 +92,33 @@ function calcular() {
   operador = null;
   valorAnterior = null;
   iniciarNovoNumero = true;
+
   atualizarVisor();
 }
 
+// Limpa a calculadora
 function limpar() {
   valorAtual = "0";
   valorAnterior = null;
   operador = null;
   iniciarNovoNumero = false;
+
   atualizarVisor();
 }
 
+// Apaga o último caractere
 function apagar() {
-  if (iniciarNovoNumero) return;
+  if (iniciarNovoNumero) {
+    return;
+  }
 
   valorAtual = valorAtual.length > 1
     ? valorAtual.slice(0, -1)
     : "0";
 
+  if (valorAtual === "-" || valorAtual === "") {
+    valorAtual = "0";
+  }
+
   atualizarVisor();
 }
-
-document.querySelector(".botoes").addEventListener("click", (evento) => {
-  const botao = evento.target.closest("button");
-  if (!botao) return;
-
-  if (botao.dataset.numero !== undefined) {
-    digitarNumero(botao.dataset.numero);
-  } else if (botao.dataset.operador) {
-    escolherOperador(botao.dataset.operador);
-  } else if (botao.dataset.acao === "calcular") {
-    calcular();
-  } else if (botao.dataset.acao === "limpar") {
-    limpar();
-  } else if (botao.dataset.acao === "apagar") {
-    apagar();
-  }
-});
-       
